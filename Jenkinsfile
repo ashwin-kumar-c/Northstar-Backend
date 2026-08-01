@@ -50,10 +50,25 @@ pipeline {
                           ./ "$EC2_USER@$EC2_HOST:/opt/my-demo-app-backend/"
 
                         ssh "$EC2_USER@$EC2_HOST" '
-                            cd /opt/my-demo-app-backend &&
-                            npm ci --omit=dev &&
-                            sudo systemctl restart my-demo-app-backend &&
-                            curl --fail http://127.0.0.1:3001/api/health
+                            set -e
+                            cd /opt/my-demo-app-backend
+                            npm ci --omit=dev
+                            sudo systemctl restart my-demo-app-backend
+
+                            for attempt in $(seq 1 10); do
+                                if curl --silent --fail http://127.0.0.1:3001/api/health; then
+                                    echo "Backend health check passed."
+                                    exit 0
+                                fi
+
+                                echo "Waiting for backend to start ($attempt/10)..."
+                                sleep 2
+                            done
+
+                            echo "Backend did not become healthy."
+                            sudo systemctl status my-demo-app-backend --no-pager || true
+                            sudo journalctl -u my-demo-app-backend -n 50 --no-pager || true
+                            exit 1
                         '
                     '''
                 }
