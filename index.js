@@ -2,7 +2,7 @@ import express from 'express'
 
 const app = express()
 const port = process.env.PORT || 3001
-const host = '127.0.0.1'
+// const host = '127.0.0.1'
 
 app.use(express.json())
 
@@ -25,6 +25,9 @@ app.post('/api/greet', (req, res) => {
   })
 })
 
-app.listen(port, host, () => {
-  console.log(`Express backend running at http://${host}:${port}`)
+// app.listen(port, host, () => {
+//   console.log(`Express backend running at http://${host}:${port}`)
+
+app.listen(port, () => {
+  console.log(`Express backend running at ${port}`)
 })
